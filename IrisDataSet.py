@@ -15,6 +15,7 @@ from pandas.plotting import scatter_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -46,7 +47,7 @@ kfold = KFold(n_splits=10, random_state=7, shuffle=True)
 
 # Testando qual é o algoritmo mais preciso
 models = [('LR', LogisticRegression(solver='liblinear')), ('LDA', LinearDiscriminantAnalysis()),
-          ('RF', RandomForestClassifier())]
+          ('RF', RandomForestClassifier()), ('DecTree', DecisionTreeClassifier())]
 
 for name, model in models:
     results = cross_val_score(model, rescaledX, Y, cv=kfold)
