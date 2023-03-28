@@ -15,9 +15,9 @@ from pandas.plotting import scatter_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 import pickle
 
 url = 'iris.data'
@@ -37,8 +37,8 @@ plt.show()
 array = iris.values
 X = array[:, 0:4]
 Y = array[:, 4]
-scaler = StandardScaler().fit(X)
-rescaledX = scaler.transform(X)
+scaler = StandardScaler()
+rescaledX = scaler.fit_transform(X)
 print(f'Dados padronizados: \n{rescaledX[0:5, :]}')
 
 # K fold cross validation
@@ -46,7 +46,7 @@ kfold = KFold(n_splits=10, random_state=7, shuffle=True)
 
 # Testando qual é o algoritmo mais preciso
 models = [('LR', LogisticRegression(solver='liblinear')), ('LDA', LinearDiscriminantAnalysis()),
-          ('RF', RandomForestClassifier())]
+          ('RF', RandomForestClassifier()), ('DecTree', DecisionTreeClassifier())]
 
 for name, model in models:
     results = cross_val_score(model, rescaledX, Y, cv=kfold)
@@ -61,16 +61,16 @@ grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=kfold)
 grid.fit(rescaledX, Y)
 print(f'\nPrecisão do algoritmo com GridSearchCV: {grid.best_score_}, melhor solver: {grid.best_estimator_.solver}\n')
 
-# Separando variáveis de treino e teste para poder testar no modelo pronto
-test_size = 0.33
-seed = 7
-X_train, X_test, Y_train, Y_test = train_test_split(rescaledX, Y, test_size=test_size, random_state=seed)
+# Modelo final com toda a Database
+modelo_final = LinearDiscriminantAnalysis(solver='svd')
+modelo_final.fit(rescaledX, Y)
 
 # Salvando o modelo
 filename = 'modelo.sav'
-pickle.dump(grid, open(filename, 'wb'))
+pickle.dump(modelo_final, open(filename, 'wb'))
 
 # Exemplo caso haja necessidade de testar o modelo
 loaded_model = pickle.load(open(filename, 'rb'))
-result = loaded_model.score(X_test, Y_test)
+# Os dados inseridos em score são ilustrativos, o mais preciso é inserir dados não usados no fit do modelo
+result = loaded_model.score(rescaledX[0:5, :], Y[0:5])
 print(f'Resultado do modelo testando novas entradas: {result * 100.0:.3f}%')
